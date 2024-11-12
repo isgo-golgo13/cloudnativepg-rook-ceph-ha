@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cnpg-eql-insert-config
+  namespace: {{ .Values.cloudNativePG.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.cloudNativePG.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+data:
+  ddosify-settings.yaml: |
+    # Configuration for Ddosify
+    target_url: http://localhost:8080/insert
+    requests_per_second: {{ .Values.ddosify.requestsPerSecond }}
+    concurrent_users: {{ .Values.ddosify.concurrentUsers }}

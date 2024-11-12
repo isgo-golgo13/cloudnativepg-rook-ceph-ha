@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ticket-insert-job
+  namespace: eql-cnpg-cluster
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-insert
+        image: postgres:15  # PostgreSQL client image
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: username
+          - name: PGDATABASE
+            value: eql
+          - name: PGHOST
+            value: cluster-deploy-sql-1  # Adjust to your actual pod or service hostname
+        command: ["psql"]
+        args:
+          - "-c"
+          - |
+            INSERT INTO eql.ticket (
+              vendor_ticket_id, issued_time, location, status, tender_type, price, 
+              data, terminal_id, score, transaction_id, prize_type, prize_amount, 
+              player_id, geo_hash, prize_name, player_status, currency, mode
+            ) VALUES (
+              'ticket_123', NOW(), 'X Location', 'active', 'cash', 10.5, 
+              '{"key": "value"}', 'terminal_001', 100, 'tx_456', 'type_a', 500, 
+              'player_789', 'geo_123', 'prize_name_x', 'active', 'USD', 'D'
+            );
+      restartPolicy: Never
+  backoffLimit: 3

@@ -1,0 +1,34 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: {{ .Values.rookCeph.cephCluster.name }}
+  namespace: {{ .Values.rookCeph.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.rookCeph.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  cephVersion:
+    image: {{ .Values.rookCeph.cephCluster.image }}
+  dataDirHostPath: {{ .Values.rookCeph.cephCluster.dataDirHostPath }}
+  network:
+    hostNetwork: {{ .Values.rookCeph.cephCluster.network.hostNetwork }}
+  mon:
+    count: {{ .Values.rookCeph.cephCluster.monCount }}
+    allowMultiplePerNode: {{ .Values.rookCeph.cephCluster.allowMultiplePerNode }}
+  placement: 
+    all:
+      {{- toYaml .Values.rookCeph.cephCluster.placement.all | nindent 4 }}
+  # placement:
+  #     all:
+  #       nodeAffinity: {} 
+  storage:
+    useAllNodes: {{ .Values.rookCeph.cephCluster.storage.useAllNodes }}
+    
+    useAllDevices: {{ .Values.rookCeph.cephCluster.storage.useAllDevices }}
+    config:
+      databaseSizeMB: "{{ .Values.rookCeph.cephCluster.storage.config.databaseSizeMB }}"
+      journalSizeMB: "{{ .Values.rookCeph.cephCluster.storage.config.journalSizeMB }}"
+  dashboard:
+    enabled: {{ .Values.rookCeph.cephCluster.dashboard.enabled }}

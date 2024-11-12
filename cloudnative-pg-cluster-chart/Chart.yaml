@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cloudnative-pg-cluster-chart
+description: A Helm chart for deploying CloudNativePG Cluster CR and CongigMap Schema
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+

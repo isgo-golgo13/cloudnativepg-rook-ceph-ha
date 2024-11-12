@@ -1,0 +1,21 @@
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: {{ .Values.rookCeph.cephFileSystem.name }}
+  namespace: {{ .Values.rookCeph.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.rookCeph.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  metadataPool:
+    replicated:
+      size: {{ .Values.rookCeph.cephFileSystem.metadataPool.replicated.size }}
+  dataPools:
+    - replicated:
+        size: {{ (index .Values.rookCeph.cephFileSystem.dataPools 0).replicated.size }}
+  preservePoolsOnDelete: {{ .Values.rookCeph.cephFileSystem.preservePoolsOnDelete }}
+  metadataServer:
+    activeCount: {{ .Values.rookCeph.cephFileSystem.metadataServer.activeCount }}
+    activeStandby: {{ .Values.rookCeph.cephFileSystem.metadataServer.activeStandby }}

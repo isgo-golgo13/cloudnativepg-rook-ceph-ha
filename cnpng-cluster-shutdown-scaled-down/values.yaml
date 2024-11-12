@@ -1,0 +1,13 @@
+# Namespace where the CNPG cluster is deployed
+targetNamespace: eql-cnpg-cluster-projvol
+
+# Chaos parameters
+podChaos:
+  action: "pod-kill"       # Type of disruption, e.g., "pod-kill"
+  mode: "one"              # Chaos mode (e.g., "one" to select one pod, "all" for all pods, or specific percentage)
+  duration: "30s"          # Duration for which the chaos is applied (useful for testing)
+  selector:
+    namespaces:
+      - eql-cnpg-cluster-projvol
+    labelSelectors:
+      "app": "eql-storage-postgresql-cluster"  # Target label for the CNPG cluster pods

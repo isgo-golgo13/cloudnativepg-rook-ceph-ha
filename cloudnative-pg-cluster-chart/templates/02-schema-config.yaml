@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cloudNativePG.schemaConfigMap.name }}
+  namespace: {{ .Values.cloudNativePG.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.cloudNativePG.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+data:
+  schema.sql: |-
+    {{ (.Files.Get "eql-schema-scaled-down.sql" | nindent 8) }}

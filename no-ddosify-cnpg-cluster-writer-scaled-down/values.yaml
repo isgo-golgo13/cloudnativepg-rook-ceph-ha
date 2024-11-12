@@ -1,0 +1,8 @@
+# CloudNativePG Cluster Settings
+cloudNativePG:
+  namespace: eql-cnpg-cluster-projvol
+  primaryServiceName: eql-storage-postgresql-cluster-rw  # Update this if necessary
+  appUserSecret:
+    name: eql-user-secret
+    username: eql
+    password: eqlpassword

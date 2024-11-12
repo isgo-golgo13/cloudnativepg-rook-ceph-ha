@@ -1,0 +1,79 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-cnpg-highload-job
+  namespace: {{ .Values.cloudNativePG.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.cloudNativePG.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  template:
+    spec:
+      containers:
+      # 1. Postgres Client
+      - name: postgres-client
+        image: postgres:15
+        env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.cloudNativePG.appUserSecret.name }}
+                key: password
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.cloudNativePG.appUserSecret.name }}
+                key: username
+          - name: PGDATABASE
+            value: eql
+          - name: PGHOST
+            value: {{ .Values.cloudNativePG.primaryServiceName }}
+        command: ["psql"]
+        args: ["-c", "SELECT 1"]
+
+      # 2. Go SQLx Service for Concurrent Inserts
+      - name: go-sqlx-service-proxy
+        image: go-sqlx-svc-proxy:latest  # go-sqlx-svc-proxy is a placeholder
+        ports:
+          - containerPort: 8080
+        env:
+          - name: DB_HOST
+            value: {{ .Values.cloudNativePG.primaryServiceName }}
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.cloudNativePG.appUserSecret.name }}
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.cloudNativePG.appUserSecret.name }}
+                key: password
+          - name: DB_NAME
+            value: eql
+
+      # 3. Ddosify for Load Testing
+      - name: ddosify
+        image: ddosify/ddosify
+        env:
+          - name: TARGET_URL
+            value: "http://localhost:8080/insert"
+        command: ["ddosify"]
+        args:
+          - "-t"
+          - "$(TARGET_URL)"
+          - "-d"
+          - "180s"
+          - "-r"
+          - "{{ .Values.ddosify.requestsPerSecond }}"
+          - "-c"
+          - "{{ .Values.ddosify.concurrentUsers }}"
+
+      restartPolicy: Never
+      volumes:
+        - name: sql-config
+          configMap:
+            name: {{ .Release.Name }}-cnpg-eql-insert-config
+  backoffLimit: 3

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.rookCeph.cephPVC.name }}
+  namespace: {{ .Values.rookCeph.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.rookCeph.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  accessModes:
+    {{ .Values.rookCeph.cephPVC.accessModes | toYaml | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.rookCeph.cephPVC.resources.requests.storage }}
+  storageClassName: {{ .Values.rookCeph.cephStorageClass.name }}

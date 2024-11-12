@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cpng-eql-insert-config
+  namespace: {{ .Values.cloudNativePG.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.cloudNativePG.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+data:
+  cnpg-eql-insert.sql: |
+    -- Insert statements for the required tables in sequence
+
+    -- Step 1: Insert a game into `eql_games`
+    INSERT INTO eql_games (game_name, start_time, end_time, status)
+    VALUES ('Poker Transylvania Game', '2024-11-01 10:00:00', '2024-11-01 22:00:00', 'active');
+
+    -- Step 2: Insert a player into `eql_game_players`
+    INSERT INTO eql_game_players (player_name, email, join_date)
+    VALUES ('Count Dracula', 'countdracula@transylvanians.com', '2024-11-01 09:30:00');
+
+    -- Step 3: Insert a ticket for the game and player into `eql_game_tickets`
+    INSERT INTO eql_game_tickets (game_id, purchase_time, player_id, ticket_number, status, prize_amount)
+    VALUES (
+        (SELECT game_id FROM eql_games WHERE game_name = 'Poker Train Game'),  -- Link to created game
+        '2024-11-01 10:15:00',
+        (SELECT player_id FROM eql_game_players WHERE player_name = 'Count Dracula'),  -- Link to created player
+        'TICKET12345',
+        'pending',
+        100.50
+    );
+
+
+

@@ -1,0 +1,66 @@
+# Values.yaml for Rook Ceph #
+
+# Rook Ceph configurations under a unified 'rookceph' root-level key
+rookCeph:
+  # enabled: false
+  namespace: rook-ceph
+
+  cephCluster:
+    name: rook-ceph-cluster
+    image: ceph/ceph:v15.2.8
+    dataDirHostPath: /var/lib/rook
+    monCount: 3
+    allowMultiplePerNode: false  # Default for production
+    placement:
+      all:
+        nodeAffinity: {} 
+    storage:
+      useAllNodes: true
+      useAllDevices: true
+      config:
+        databaseSizeMB: "1024"  # Set to desired database size in MB
+        journalSizeMB: "512"    # Set to desired journal size in MB
+    dashboard:
+      enabled: true
+    network:
+      hostNetwork: false
+
+  cephFileSystem:
+    name: rook-ceph-fs
+    preservePoolsOnDelete: false          # Set to true if you want to preserve pools on deletion
+    metadataServer:
+      activeCount: 1                      # Number of active metadata servers
+      activeStandby: true                 # Enables standby mode for failover
+    metadataPool:
+      replicated:
+        size: 3
+    dataPools:
+      - replicated:
+          size: 3
+
+  cephStorageClass:
+    name: rook-cephfs
+    reclaimPolicy: Retain
+    allowVolumeExpansion: true
+    mountOptions:
+      - discard
+    provisioner: rook-ceph.cephfs.csi.ceph.com
+    parameters:
+      clusterID: rook-ceph
+      fsName: cephfs
+      pool: cephfs-data0
+      csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+      csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+      csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+      csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+      imageFeatures: layering,exclusive-lock,object-map,fast-diff
+
+  cephPVC:
+    name: cephfs-pvc
+    namespace: cnpg-database
+    accessModes:
+      - ReadWriteMany
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: rook-cephfs

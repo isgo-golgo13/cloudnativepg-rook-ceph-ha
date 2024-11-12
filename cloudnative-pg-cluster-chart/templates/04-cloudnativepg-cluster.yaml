@@ -1,0 +1,70 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.cloudNativePG.name }}
+  namespace: {{ .Values.cloudNativePG.namespace }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Values.cloudNativePG.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  instances: {{ .Values.cloudNativePG.instances }}
+  projectedVolumeTemplate:
+    sources:
+      - configMap:
+          name: {{ .Values.cloudNativePG.schemaConfigMap.name }}
+          items:
+            - key: schema.sql           # Matches ConfigMap data key
+              path: schema/eql-schema.sql     # Mount location in /projected/
+  primaryUpdateMethod: {{ .Values.cloudNativePG.primaryUpdateMethod }}
+  primaryUpdateStrategy: {{ .Values.cloudNativePG.primaryUpdateStrategy }}
+  enableSuperuserAccess: {{ .Values.cloudNativePG.enableSuperuserAccess }}
+  monitoring:
+    enablePodMonitor: {{ .Values.cloudNativePG.monitoring.enablePodMonitor }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.cloudNativePG.bootstrap.initdb.database }}
+      owner: {{ .Values.cloudNativePG.bootstrap.initdb.owner }}
+      dataChecksums: true
+      encoding: {{ .Values.cloudNativePG.bootstrap.initdb.localeSettings.encoding }}
+      localeCType: {{ .Values.cloudNativePG.bootstrap.initdb.localeSettings.localeCType }}
+      localeCollate: {{ .Values.cloudNativePG.bootstrap.initdb.localeSettings.localeCollate }}
+      secret:
+        name: {{ .Values.appUserSecret.name }}
+      postInitApplicationSQLRefs:
+        configMapRefs:
+         - name: {{ .Values.cloudNativePG.schemaConfigMap.name }}
+           key: {{ .Values.cloudNativePG.schemaConfigMap.key }}
+  superuserSecret:
+        name: {{ .Values.superuserSecret.name }}
+  postgresql:
+    parameters:
+      logging_collector: "{{ .Values.cloudNativePG.postgresql.parameters.logging_collector }}"
+      log_statement: "{{ .Values.cloudNativePG.postgresql.parameters.log_statement }}"
+      log_directory: "{{ .Values.cloudNativePG.postgresql.parameters.log_directory }}"
+      log_filename: "{{ .Values.cloudNativePG.postgresql.parameters.log_filename }}"
+      log_min_messages: "{{ .Values.cloudNativePG.postgresql.parameters.log_min_messages }}"
+      log_rotation_size: "{{ .Values.cloudNativePG.postgresql.parameters.log_rotation_size }}"
+      log_rotation_age: "{{ .Values.cloudNativePG.postgresql.parameters.log_rotation_age }}"
+      log_truncate_on_rotation: "{{ .Values.cloudNativePG.postgresql.parameters.log_truncate_on_rotation }}"
+      max_connections: "500"
+      max_slot_wal_keep_size: "64MB"
+      wal_keep_size: "64MB"
+      wal_level: {{ .Values.cloudNativePG.postgresql.parameters.walLevel }}
+    pg_hba:
+    {{- range .Values.cloudNativePG.postgresql.pg_hba }}
+      - {{ . }}
+    {{- end }}
+    synchronous:
+      method: {{ .Values.cloudNativePG.postgresql.synchronous.method }}
+      number: {{ .Values.cloudNativePG.postgresql.synchronous.number }}
+  storage:
+    size: {{ .Values.cloudNativePG.storage.size }}
+  resources:
+    requests:
+      cpu: {{ .Values.cloudNativePG.cpuRequest }}
+      memory: {{ .Values.cloudNativePG.memoryRequest }}
+    limits:
+      cpu: {{ .Values.cloudNativePG.cpuLimit }}
+      memory: {{ .Values.cloudNativePG.memoryLimit }}

@@ -1,0 +1,18 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: {{ .Release.Name }}-pod-shutdown
+  namespace: {{ .Values.targetNamespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+spec:
+  action: {{ .Values.podChaos.action }}
+  mode: {{ .Values.podChaos.mode }}
+  duration: {{ .Values.podChaos.duration }}
+  selector:
+    namespaces:
+      {{- toYaml .Values.podChaos.selector.namespaces | nindent 6 }}
+    labelSelectors:
+      {{- toYaml .Values.podChaos.selector.labelSelectors | nindent 6 }}
+  scheduler:
+    cron: "@every 1m"  # Adjust schedule to run periodically

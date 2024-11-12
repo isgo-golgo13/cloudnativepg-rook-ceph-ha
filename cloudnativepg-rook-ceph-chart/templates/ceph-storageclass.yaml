@@ -1,0 +1,19 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.rookCeph.cephStorageClass.name }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+provisioner: {{ .Values.rookCeph.cephStorageClass.provisioner }}
+reclaimPolicy: {{ .Values.rookCeph.cephStorageClass.reclaimPolicy }}
+parameters:
+  clusterID: {{ .Values.rookCeph.cephStorageClass.clusterID }}
+  fsName: {{ .Values.rookCeph.cephStorageClass.fsName }}
+  pool: {{ .Values.rookCeph.cephStorageClass.pool }}
+  csi.storage.k8s.io/provisioner-secret-name: {{ .Values.rookCeph.cephStorageClass.provisionerSecretName }}
+  csi.storage.k8s.io/provisioner-secret-namespace: {{ .Values.rookCeph.cephStorageClass.provisionerSecretNamespace }}
+  csi.storage.k8s.io/node-stage-secret-name: {{ .Values.rookCeph.cephStorageClass.nodeStageSecretName }}
+  csi.storage.k8s.io/node-stage-secret-namespace: {{ .Values.rookCeph.cephStorageClass.nodeStageSecretNamespace }}
+  imageFeatures: {{ .Values.rookCeph.cephStorageClass.imageFeatures }}
